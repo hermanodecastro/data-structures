@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 #[derive(Debug)]
 struct Node {
     value: i32,
@@ -46,40 +48,68 @@ impl BinaryTree {
             Some(root) => callback(root, node),
             None => self.root = Some(node)
         }
-
-       // println!("{:?}\n\n\n", self.root);
     }
 
-    //to do
-    fn lookup(key: i32) -> bool {
-        true
+    fn lookup(&mut self, key: i32) -> bool {
+        fn callback(key: i32, root: &mut Box<Node>) -> bool {
+            match key.cmp(&root.value) {
+                Ordering::Less => match &mut root.left {
+                    Some(left) => callback(key, left),
+                    None => false
+                },
+                Ordering::Greater => match &mut root.right {
+                    Some(right) => callback(key, right),
+                    None => false
+                },
+                Ordering::Equal => true
+            }
+        }
+
+        match &mut self.root {
+            Some(root) => callback(key, root),
+            None => false
+        }
     }
 
-    fn min(&mut self) -> i32 {
-        fn callback(root: &mut Box<Node>) -> i32 {
+    fn min(&mut self) -> Option<i32> {
+        fn callback(root: &mut Box<Node>) -> Option<i32> {
             match &mut root.left {
                 Some(left) => callback(left),
-                None => root.value
+                None => Some(root.value)
             }
         }
 
         match &mut self.root {
             Some(root) => callback(root),
-            None => 0
+            None => None
         }
     }
 
-    fn max(&mut self) -> i32 {
-        fn callback(root: &mut Box<Node>) -> i32 {
+    fn max(&mut self) -> Option<i32> {
+        fn callback(root: &mut Box<Node>) -> Option<i32> {
             match &mut root.right {
                 Some(right) => callback(right),
-                None => root.value
+                None => Some(root.value)
             }
         }
 
         match &mut self.root {
             Some(root) => callback(root),
-            None => 0
+            None => None
+        }
+    }
+
+    fn summary(&mut self) {
+        if let Some(min) = &mut self.min() {
+            println!("Min: {}", min);
+        } else {
+            println!("Min: Tree is empty");
+        }
+
+        if let Some(max) = &mut self.max() {
+            println!("Max: {}", max);
+        } else {
+            println!("Max: Tree is empty");
         }
     }
 }
@@ -94,8 +124,7 @@ fn main() {
     tree.insert(Box::new(Node::new(20)));
     tree.insert(Box::new(Node::new(1)));
     
-    println!("Min: {}", tree.min());
-    println!("Max: {}", tree.max());
+    tree.summary();
 }
 
 #[test]
@@ -103,11 +132,39 @@ fn test_insert() {
     let mut tree = BinaryTree::new();
     let node = Box::new(Node::new(15));
 
-    tree.insert(Box::new(Node::new(10)));
+    tree.insert(Box::new(Node::new(15)));
 
     if let Some(root) = &tree.root {
         assert_eq!(root.value, node.value);
     } 
+}
+
+#[test]
+fn test_lookup_should_return_true() {
+    let mut tree = BinaryTree::new();
+
+    tree.insert(Box::new(Node::new(5)));
+    tree.insert(Box::new(Node::new(15)));
+    tree.insert(Box::new(Node::new(25)));
+    tree.insert(Box::new(Node::new(3)));
+    tree.insert(Box::new(Node::new(20)));
+    tree.insert(Box::new(Node::new(1)));
+
+    assert!(tree.lookup(25));
+}
+
+#[test]
+fn test_lookup_should_return_false() {
+    let mut tree = BinaryTree::new();
+
+    tree.insert(Box::new(Node::new(5)));
+    tree.insert(Box::new(Node::new(15)));
+    tree.insert(Box::new(Node::new(25)));
+    tree.insert(Box::new(Node::new(3)));
+    tree.insert(Box::new(Node::new(20)));
+    tree.insert(Box::new(Node::new(1)));
+
+    assert_eq!(tree.lookup(100), false);
 }
 
 #[test]
@@ -121,7 +178,7 @@ fn test_min() {
     tree.insert(Box::new(Node::new(20)));
     tree.insert(Box::new(Node::new(1)));
 
-    assert_eq!(tree.min(), 1);
+    assert_eq!(tree.min(), Some(1));
 }
 
 #[test]
@@ -135,6 +192,6 @@ fn test_max() {
     tree.insert(Box::new(Node::new(20)));
     tree.insert(Box::new(Node::new(1)));
 
-    assert_eq!(tree.max(), 25);
+    assert_eq!(tree.max(), Some(25));
 }
 
