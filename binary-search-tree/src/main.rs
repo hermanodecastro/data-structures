@@ -40,29 +40,47 @@ impl BinaryTree {
                     None => root.left = Some(node)
                 }
             }
-
-            return 
         }
 
         match &mut self.root {
-            Some(root) if node.value > root.value => match &mut root.right {
-                Some(right) => callback(right, node),
-                None => root.right = Some(node)
-            },
-            Some(root) if node.value < root.value => match &mut root.left {
-                Some(left) => callback(left, node),
-                None => root.left = Some(node)
-            },
-            None => self.root = Some(node),
-            _ => return
+            Some(root) => callback(root, node),
+            None => self.root = Some(node)
         }
 
-        println!("{:?}\n\n\n", self.root);
+       // println!("{:?}\n\n\n", self.root);
     }
 
     //to do
     fn lookup(key: i32) -> bool {
+        true
+    }
 
+    fn min(&mut self) -> i32 {
+        fn callback(root: &mut Box<Node>) -> i32 {
+            match &mut root.left {
+                Some(left) => callback(left),
+                None => root.value
+            }
+        }
+
+        match &mut self.root {
+            Some(root) => callback(root),
+            None => 0
+        }
+    }
+
+    fn max(&mut self) -> i32 {
+        fn callback(root: &mut Box<Node>) -> i32 {
+            match &mut root.right {
+                Some(right) => callback(right),
+                None => root.value
+            }
+        }
+
+        match &mut self.root {
+            Some(root) => callback(root),
+            None => 0
+        }
     }
 }
 
@@ -73,13 +91,50 @@ fn main() {
     tree.insert(Box::new(Node::new(15)));
     tree.insert(Box::new(Node::new(25)));
     tree.insert(Box::new(Node::new(3)));
+    tree.insert(Box::new(Node::new(20)));
+    tree.insert(Box::new(Node::new(1)));
+    
+    println!("Min: {}", tree.min());
+    println!("Max: {}", tree.max());
+}
 
-    /*
-                        5
-                      /   \
-                     3    15
-                            \
-                             25
-    */
+#[test]
+fn test_insert() {
+    let mut tree = BinaryTree::new();
+    let node = Box::new(Node::new(15));
+
+    tree.insert(Box::new(Node::new(10)));
+
+    if let Some(root) = &tree.root {
+        assert_eq!(root.value, node.value);
+    } 
+}
+
+#[test]
+fn test_min() {
+    let mut tree = BinaryTree::new();
+
+    tree.insert(Box::new(Node::new(5)));
+    tree.insert(Box::new(Node::new(15)));
+    tree.insert(Box::new(Node::new(25)));
+    tree.insert(Box::new(Node::new(3)));
+    tree.insert(Box::new(Node::new(20)));
+    tree.insert(Box::new(Node::new(1)));
+
+    assert_eq!(tree.min(), 1);
+}
+
+#[test]
+fn test_max() {
+    let mut tree = BinaryTree::new();
+
+    tree.insert(Box::new(Node::new(5)));
+    tree.insert(Box::new(Node::new(15)));
+    tree.insert(Box::new(Node::new(25)));
+    tree.insert(Box::new(Node::new(3)));
+    tree.insert(Box::new(Node::new(20)));
+    tree.insert(Box::new(Node::new(1)));
+
+    assert_eq!(tree.max(), 25);
 }
 
